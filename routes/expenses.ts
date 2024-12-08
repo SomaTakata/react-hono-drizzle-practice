@@ -8,16 +8,22 @@ type Expenses = {
   amount: number;
 };
 
-const fakeExpenses: Expenses[] = [
-  { id: 1, title: "Car Insurance", amount: 294.67 },
-  { id: 2, title: "Rent", amount: 1000 },
-  { id: 3, title: "Groceries", amount: 200 },
-];
+const expenseSchema = z.object({
+  id: z.number().int().positive().min(1),
+  title: z.string().min(3).max(100),
+  amount: z.number().int().positive(),
+});
 
 const createPostSchema = z.object({
   title: z.string().min(3).max(100),
   amount: z.number().int().positive(),
 });
+
+const fakeExpenses: Expenses[] = [
+  { id: 1, title: "Car Insurance", amount: 294.67 },
+  { id: 2, title: "Rent", amount: 1000 },
+  { id: 3, title: "Groceries", amount: 200 },
+];
 
 export const expensesRoute = new Hono()
   .get("/", (c) => {
