@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { z } from "zod";
 
 type Expenses = {
   id: string;
@@ -12,12 +13,19 @@ const fakeExpenses: Expenses[] = [
   { id: "3", title: "Groceries", amount: 200 },
 ];
 
+const createPostSchema = z.object({
+  title: z.string().min(3).max(100),
+  amount: z.number().int().positive(),
+});
+
 export const expensesRoute = new Hono()
   .get("/", (c) => {
     return c.json({ expenses: fakeExpenses });
   })
   .post("/", async (c) => {
-    const expense = await c.req.json();
+    const data = await c.req.json();
+    const expense = createPostSchema.parse(data);
+    console.log(expense.amount);
     console.log({ expense });
     return c.json(expense);
   });
