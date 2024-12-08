@@ -16,6 +16,8 @@ export const expensesRoute = new Hono()
   .get("/", (c) => {
     return c.json({ expenses: fakeExpenses });
   })
-  .post("/", (c) => {
-    return c.json({});
+  .post("/", async (c) => {
+    const expense = await c.req.json();
+    console.log({ expense });
+    return c.json(expense);
   });
