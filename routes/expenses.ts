@@ -14,10 +14,7 @@ const expenseSchema = z.object({
   amount: z.number().int().positive(),
 });
 
-const createPostSchema = z.object({
-  title: z.string().min(3).max(100),
-  amount: z.number().int().positive(),
-});
+const createPostSchema = expenseSchema.omit({ id: true });
 
 const fakeExpenses: Expenses[] = [
   { id: 1, title: "Car Insurance", amount: 294.67 },
