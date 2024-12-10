@@ -13,7 +13,7 @@ type Expenses = z.infer<typeof expenseSchema>;
 const createPostSchema = expenseSchema.omit({ id: true });
 
 const fakeExpenses: Expenses[] = [
-  { id: 1, title: "Car Insurance", amount: 294.67 },
+  { id: 1, title: "Car Insurance", amount: 294 },
   { id: 2, title: "Rent", amount: 1000 },
   { id: 3, title: "Groceries", amount: 200 },
 ];
@@ -27,6 +27,12 @@ export const expensesRoute = new Hono()
     fakeExpenses.push({ ...expense, id: fakeExpenses.length + 1 });
     c.status(201);
     return c.json(expense);
+  })
+  .get("/total-spent", (c) => {
+    const totalSpent = fakeExpenses.reduce((acc, expense) => {
+      return acc + expense.amount;
+    }, 0);
+    return c.json({ totalSpent });
   })
   .get("/:id{[0-9]+}", (c) => {
     const id = Number.parseInt(c.req.param("id"));

@@ -1,27 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 function App() {
-  const [count, setCount] = useState(0);
+  const [totalSpent, setTotalSpent] = useState(0);
 
+  useEffect(() => {
+    fetch(
+      "http://localhost:3000/api/expenses/total-spent/api/expenses/total-spent"
+    );
+  }, []);
   return (
-    <>
-      <div>
-        <button
-          className="bg-green-400"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          up
-        </button>
-        <button
-          className="bg-red-400"
-          onClick={() => setCount((count) => count - 1)}
-        >
-          down
-        </button>
-        <p>{count}</p>
-      </div>
-    </>
+    <Card className="w-[350px] m-auto">
+      <CardHeader>
+        <CardTitle>Total Spent</CardTitle>
+        <CardDescription>The total amount you've spent</CardDescription>
+      </CardHeader>
+      <CardContent>{totalSpent}</CardContent>
+    </Card>
   );
 }
 
