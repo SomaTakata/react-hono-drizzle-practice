@@ -11,9 +11,12 @@ function App() {
   const [totalSpent, setTotalSpent] = useState(0);
 
   useEffect(() => {
-    fetch(
-      "http://localhost:3000/api/expenses/total-spent/api/expenses/total-spent"
-    );
+    async function fetchTotalSpent() {
+      const res = await fetch("/api/expenses/total-spent");
+      const data = await res.json();
+      setTotalSpent(data.totalSpent);
+    }
+    fetchTotalSpent();
   }, []);
   return (
     <Card className="w-[350px] m-auto">
