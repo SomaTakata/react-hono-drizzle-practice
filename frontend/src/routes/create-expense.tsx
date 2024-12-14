@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/create-expense")({
   component: CreateExpense,
@@ -16,6 +17,10 @@ function CreateExpense() {
     },
     onSubmit: async ({ value }) => {
       // Do something with form data
+      const res = await api.expenses.$post({ json: value });
+      if (!res.ok) {
+        throw new Error("Failed to create expense");
+      }
       console.log(value);
     },
   });
