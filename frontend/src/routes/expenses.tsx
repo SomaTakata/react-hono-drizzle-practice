@@ -10,12 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/expenses")({
   component: Expenses,
 });
 async function getAllExpenses() {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
   const res = await api.expenses.$get();
   if (!res.ok) {
     throw new Error("Failed to fetch total spent");
@@ -47,7 +47,21 @@ function Expenses() {
         </TableHeader>
         <TableBody>
           {isPending
-            ? "..."
+            ? Array(3)
+                .fill(0)
+                .map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4" />
+                    </TableCell>
+                    <TableCell className="animate-pulse">
+                      <Skeleton className="h-4" />
+                    </TableCell>
+                  </TableRow>
+                ))
             : data?.expenses.map((expense) => (
                 <TableRow key={expense.id}>
                   <TableCell className="font-medium">{expense.id}</TableCell>
