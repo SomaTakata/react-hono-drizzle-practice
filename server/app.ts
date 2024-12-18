@@ -13,7 +13,7 @@ app.get("/test", (c) => c.json({ message: "test" }));
 const apiRoutes = app
   .basePath("/api")
   .route("/expenses", expensesRoute)
-  .route("/authRoute", authRoute);
+  .route("/", authRoute);
 
 app.get("*", serveStatic({ root: "./frontend/dist" }));
 app.get("*", serveStatic({ path: "./frontend/dist/index.html" }));
