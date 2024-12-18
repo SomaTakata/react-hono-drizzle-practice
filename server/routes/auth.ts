@@ -4,11 +4,11 @@ import { kindeClient, sessionManager } from "../kinde";
 export const authRoute = new Hono();
 
 authRoute.get("/login", async (c) => {
-  const loginUrl = await kindeClient.login(sessionManager);
+  const loginUrl = await kindeClient.login(sessionManager(c));
   return c.redirect(loginUrl.toString());
 });
 
 authRoute.get("/register", async (c) => {
-  const registerUrl = await kindeClient.register(sessionManager);
+  const registerUrl = await kindeClient.register(sessionManager(c));
   return c.redirect(registerUrl.toString());
 });
