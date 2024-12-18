@@ -15,6 +15,7 @@ import { Route as ProfileImport } from './routes/profile'
 import { Route as ExpensesImport } from './routes/expenses'
 import { Route as CreateExpenseImport } from './routes/create-expense'
 import { Route as AboutImport } from './routes/about'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -43,6 +44,11 @@ const AboutRoute = AboutImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
@@ -58,6 +64,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
       parentRoute: typeof rootRoute
     }
     '/about': {
@@ -95,6 +108,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '': typeof AuthenticatedRoute
   '/about': typeof AboutRoute
   '/create-expense': typeof CreateExpenseRoute
   '/expenses': typeof ExpensesRoute
@@ -103,6 +117,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '': typeof AuthenticatedRoute
   '/about': typeof AboutRoute
   '/create-expense': typeof CreateExpenseRoute
   '/expenses': typeof ExpensesRoute
@@ -112,6 +127,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRoute
   '/about': typeof AboutRoute
   '/create-expense': typeof CreateExpenseRoute
   '/expenses': typeof ExpensesRoute
@@ -120,15 +136,23 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/create-expense' | '/expenses' | '/profile'
+  fullPaths: '/' | '' | '/about' | '/create-expense' | '/expenses' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/create-expense' | '/expenses' | '/profile'
-  id: '__root__' | '/' | '/about' | '/create-expense' | '/expenses' | '/profile'
+  to: '/' | '' | '/about' | '/create-expense' | '/expenses' | '/profile'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/about'
+    | '/create-expense'
+    | '/expenses'
+    | '/profile'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRoute
   AboutRoute: typeof AboutRoute
   CreateExpenseRoute: typeof CreateExpenseRoute
   ExpensesRoute: typeof ExpensesRoute
@@ -137,6 +161,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRoute,
   AboutRoute: AboutRoute,
   CreateExpenseRoute: CreateExpenseRoute,
   ExpensesRoute: ExpensesRoute,
@@ -154,6 +179,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/_authenticated",
         "/about",
         "/create-expense",
         "/expenses",
@@ -162,6 +188,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx"
     },
     "/about": {
       "filePath": "about.tsx"
