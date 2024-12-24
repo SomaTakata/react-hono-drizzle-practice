@@ -3,10 +3,14 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { getUser } from "../kinde";
 
+import { db } from "../db";
+import { expenses as expensesTable } from "../db/schema/expenses";
+import { eq } from "drizzle-orm";
+
 const expenseSchema = z.object({
   id: z.number().int().positive().min(1),
   title: z.string().min(3).max(100),
-  amount: z.number().int().positive(),
+  amount: z.string(),
 });
 
 type Expenses = z.infer<typeof expenseSchema>;
@@ -14,25 +18,37 @@ type Expenses = z.infer<typeof expenseSchema>;
 const createPostSchema = expenseSchema.omit({ id: true });
 
 const fakeExpenses: Expenses[] = [
-  { id: 1, title: "Car Insurance", amount: 294 },
-  { id: 2, title: "Rent", amount: 1000 },
-  { id: 3, title: "Groceries", amount: 200 },
+  { id: 1, title: "Car Insurance", amount: "294" },
+  { id: 2, title: "Rent", amount: "1000" },
+  { id: 3, title: "Groceries", amount: "200" },
 ];
 
 export const expensesRoute = new Hono()
-  .get("/", getUser, (c) => {
+  .get("/", getUser, async (c) => {
     const user = c.var.user;
-    return c.json({ expenses: fakeExpenses });
+    const expenses = await db
+      .select()
+      .from(expensesTable)
+      .where(eq(expensesTable.userId, user.id));
+    return c.json({ expenses: expenses });
   })
   .post("/", getUser, zValidator("json", createPostSchema), async (c) => {
     const expense = await c.req.valid("json");
-    fakeExpenses.push({ ...expense, id: fakeExpenses.length + 1 });
+    const user = c.var.user;
+    const result = await db
+      .insert(expensesTable)
+      .values({
+        ...expense,
+        userId: user.id,
+      })
+      .returning();
+
     c.status(201);
     return c.json(expense);
   })
   .get("/total-spent", getUser, (c) => {
     const totalSpent = fakeExpenses.reduce((acc, expense) => {
-      return acc + expense.amount;
+      return acc + +expense.amount;
     }, 0);
     return c.json({ totalSpent });
   })
