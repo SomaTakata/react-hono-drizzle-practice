@@ -10,7 +10,7 @@ import { eq } from "drizzle-orm";
 const expenseSchema = z.object({
   id: z.number().int().positive().min(1),
   title: z.string().min(3).max(100),
-  amount: z.number().int().positive(),
+  amount: z.string(),
 });
 
 type Expenses = z.infer<typeof expenseSchema>;
@@ -18,9 +18,9 @@ type Expenses = z.infer<typeof expenseSchema>;
 const createPostSchema = expenseSchema.omit({ id: true });
 
 const fakeExpenses: Expenses[] = [
-  { id: 1, title: "Car Insurance", amount: 294 },
-  { id: 2, title: "Rent", amount: 1000 },
-  { id: 3, title: "Groceries", amount: 200 },
+  { id: 1, title: "Car Insurance", amount: "294" },
+  { id: 2, title: "Rent", amount: "1000" },
+  { id: 3, title: "Groceries", amount: "200" },
 ];
 
 export const expensesRoute = new Hono()
@@ -34,13 +34,21 @@ export const expensesRoute = new Hono()
   })
   .post("/", getUser, zValidator("json", createPostSchema), async (c) => {
     const expense = await c.req.valid("json");
-    fakeExpenses.push({ ...expense, id: fakeExpenses.length + 1 });
+    const user = c.var.user;
+    const result = await db
+      .insert(expensesTable)
+      .values({
+        ...expense,
+        userId: user.id,
+      })
+      .returning();
+
     c.status(201);
     return c.json(expense);
   })
   .get("/total-spent", getUser, (c) => {
     const totalSpent = fakeExpenses.reduce((acc, expense) => {
-      return acc + expense.amount;
+      return acc + +expense.amount;
     }, 0);
     return c.json({ totalSpent });
   })
