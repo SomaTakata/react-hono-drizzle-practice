@@ -5,7 +5,8 @@ import { getUser } from "../kinde";
 
 import { db } from "../db";
 import { expenses as expensesTable } from "../db/schema/expenses";
-import { desc, eq, sum } from "drizzle-orm";
+import { and, desc, eq, sum } from "drizzle-orm";
+import { pgTable } from "drizzle-orm/pg-core";
 
 const expenseSchema = z.object({
   id: z.number().int().positive().min(1),
@@ -48,30 +49,42 @@ export const expensesRoute = new Hono()
     c.status(201);
     return c.json(expense);
   })
-  .get("/total-spent", getUser, (c) => {
+  .get("/total-spent", getUser, async (c) => {
     const user = c.var.user;
-    const total = db
+    const result = await db
       .select({ total: sum(expensesTable.amount) })
       .from(expensesTable)
       .where(eq(expensesTable.userId, user.id))
-      .execute();
-    return c.json({ total });
+      .limit(1)
+      .then((res) => res[0]);
+    return c.json({ result });
   })
-  .get("/:id{[0-9]+}", getUser, (c) => {
+  .get("/:id{[0-9]+}", getUser, async (c) => {
     const id = Number.parseInt(c.req.param("id"));
-    const expense = fakeExpenses.find((expense) => expense.id === id);
-    if (!expense) {
-      return c.notFound();
-    }
-    return c.json({ expense });
-  })
-  .delete("/:id{[0-9]+}", getUser, (c) => {
-    const id = Number.parseInt(c.req.param("id"));
-    const index = fakeExpenses.findIndex((expense) => expense.id === id);
-    if (index === -1) {
-      return c.notFound();
-    }
+    const user = c.var.user;
+    const result = await db
+      .select()
+      .from(expensesTable)
+      .where(and(eq(expensesTable.userId, user.id), eq(expensesTable.id, id)))
+      .orderBy(desc(expensesTable.createdAt))
+      .then((res) => res[0]);
 
-    const deletedExpense = fakeExpenses.splice(index, 1)[0];
-    return c.json({ expense: deletedExpense });
+    if (!result) {
+      return c.notFound();
+    }
+    return c.json({ result });
+  })
+  .delete("/:id{[0-9]+}", getUser, async (c) => {
+    const id = Number.parseInt(c.req.param("id"));
+    const user = c.var.user;
+    const result = await db
+      .delete(expensesTable)
+      .where(and(eq(expensesTable.userId, user.id), eq(expensesTable.id, id)))
+      .returning()
+      .then((res) => res[0]);
+
+    if (!result) {
+      return c.notFound();
+    }
+    return c.json({ result });
   });
