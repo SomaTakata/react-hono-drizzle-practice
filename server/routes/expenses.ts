@@ -5,7 +5,7 @@ import { getUser } from "../kinde";
 
 import { db } from "../db";
 import { expenses as expensesTable } from "../db/schema/expenses";
-import { eq } from "drizzle-orm";
+import { desc, eq, sum } from "drizzle-orm";
 
 const expenseSchema = z.object({
   id: z.number().int().positive().min(1),
@@ -29,7 +29,9 @@ export const expensesRoute = new Hono()
     const expenses = await db
       .select()
       .from(expensesTable)
-      .where(eq(expensesTable.userId, user.id));
+      .where(eq(expensesTable.userId, user.id))
+      .orderBy(desc(expensesTable.createdAt))
+      .limit(100);
     return c.json({ expenses: expenses });
   })
   .post("/", getUser, zValidator("json", createPostSchema), async (c) => {
@@ -47,10 +49,13 @@ export const expensesRoute = new Hono()
     return c.json(expense);
   })
   .get("/total-spent", getUser, (c) => {
-    const totalSpent = fakeExpenses.reduce((acc, expense) => {
-      return acc + +expense.amount;
-    }, 0);
-    return c.json({ totalSpent });
+    const user = c.var.user;
+    const total = db
+      .select({ total: sum(expensesTable.amount) })
+      .from(expensesTable)
+      .where(eq(expensesTable.userId, user.id))
+      .execute();
+    return c.json({ total });
   })
   .get("/:id{[0-9]+}", getUser, (c) => {
     const id = Number.parseInt(c.req.param("id"));
