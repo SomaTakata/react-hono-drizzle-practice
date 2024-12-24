@@ -3,6 +3,10 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { getUser } from "../kinde";
 
+import { db } from "../db";
+import { expenses as expensesTable } from "../db/schema/expenses";
+import { eq } from "drizzle-orm";
+
 const expenseSchema = z.object({
   id: z.number().int().positive().min(1),
   title: z.string().min(3).max(100),
@@ -20,9 +24,13 @@ const fakeExpenses: Expenses[] = [
 ];
 
 export const expensesRoute = new Hono()
-  .get("/", getUser, (c) => {
+  .get("/", getUser, async (c) => {
     const user = c.var.user;
-    return c.json({ expenses: fakeExpenses });
+    const expenses = await db
+      .select()
+      .from(expensesTable)
+      .where(eq(expensesTable.userId, user.id));
+    return c.json({ expenses: expenses });
   })
   .post("/", getUser, zValidator("json", createPostSchema), async (c) => {
     const expense = await c.req.valid("json");
